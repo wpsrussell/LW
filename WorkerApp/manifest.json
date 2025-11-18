@@ -1,6 +1,6 @@
 {
-  "name": "Workplace Support AppSuite",
-  "short_name": "OTG AppSuite",
+  "name": "Workplace Support On-The_Go",
+  "short_name": "WPS-OTG",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#111827",

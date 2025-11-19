@@ -340,11 +340,11 @@ header button svg, .edit-location-btn svg { pointer-events: none; }
     ];
     
     // --- TEMPLATE PLACEHOLDERS ---
-    var FIRST_ALERT_MINUTES = "15";
+    var FIRST_ALERT_MINUTES = 15;
     const PRE_ALERT_OFFSET = 2; 
-    var CHECKIN_ENABLED = "false";
-    var CHECKIN_INTERVAL = "30"; 
-    var ESCALATION_MINUTES = "5";
+    var CHECKIN_ENABLED = false;
+    var CHECKIN_INTERVAL = 30; 
+    var ESCALATION_MINUTES = 5;
     // --- END PLACEHOLDERS ---
 
     let synth, checkinCountdownInterval;
@@ -398,6 +398,7 @@ header button svg, .edit-location-btn svg { pointer-events: none; }
             wakeLock = null;
         }
     }
+    // --- END NEW ---
     
     function navigate(page) { 
         Object.values(pages).forEach(p => { p.classList.remove('active'); p.classList.add('hidden'); }); 
@@ -1876,5 +1877,3 @@ header button svg, .edit-location-btn svg { pointer-events: none; }
     }
     window.addEventListener('load', init);
     </script>
-</body>
-</html>

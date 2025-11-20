@@ -340,11 +340,11 @@ header button svg, .edit-location-btn svg { pointer-events: none; }
     ];
     
     // --- TEMPLATE PLACEHOLDERS ---
-    var FIRST_ALERT_MINUTES = 15;
+    var FIRST_ALERT_MINUTES = "15";
     const PRE_ALERT_OFFSET = 2; 
-    var CHECKIN_ENABLED = false;
-    var CHECKIN_INTERVAL = 30; 
-    var ESCALATION_MINUTES = 5;
+    var CHECKIN_ENABLED = "false";
+    var CHECKIN_INTERVAL = "30"; 
+    var ESCALATION_MINUTES = "5";
     // --- END PLACEHOLDERS ---
 
     let synth, checkinCountdownInterval;
@@ -463,8 +463,8 @@ header button svg, .edit-location-btn svg { pointer-events: none; }
         showModal('confirm');
     }
 
-    // --- UPDATED loadState (WSA v1.1 FIX) ---
-    function loadState() { 
+    // --- UPDATED loadState (WSA v1.12 FIX) ---
+function loadState() { 
         const savedState = JSON.parse(localStorage.getItem('loneWorkerState')); 
         
         const defaultState = {
@@ -482,7 +482,6 @@ header button svg, .edit-location-btn svg { pointer-events: none; }
         // Deep merge settings object
         state.settings = { ...defaultState.settings, ...(savedState ? savedState.settings : {}) };
 
-        // --- ROBUSTNESS FIX: Ensure arrays/objects are correct type ---
         if (!Array.isArray(state.locations)) {
             console.warn("Locations in localStorage was not an array, resetting.");
             state.locations = [];
@@ -495,14 +494,12 @@ header button svg, .edit-location-btn svg { pointer-events: none; }
              console.warn("CachedForms in localStorage was not an object, resetting.");
             state.cachedForms = {};
         }
-        // --- END FIX ---
         
-        // --- MODIFIED: Ensure templateName & noReport exists ---
         state.locations = state.locations.map(loc => ({
             ...loc,
             companyName: loc.companyName || "",
-            templateName: loc.templateName || "", // Add new templateName
-            noReport: loc.noReport || false // Add new noReport flag
+            templateName: loc.templateName || "", 
+            noReport: loc.noReport || false 
         }));
 
         if (savedState && savedState.activeVisit) { 
@@ -517,17 +514,23 @@ header button svg, .edit-location-btn svg { pointer-events: none; }
                 name: 'Travelling', 
                 address: 'GPS updates will be sent every 15 minutes.',
                 companyName: 'Internal', 
-                templateName: "", // Uses (Standard) form
-                noReport: true // --- NEW: Travelling never requires a report
+                templateName: "", 
+                noReport: true 
             }); 
         } 
         
+        // --- FORCE URL UPDATE ---
+        // This ensures the app always points to the backend script defined in the setup tool,
+        // even if the user has old settings in their cache.
         const prefilledUrl = "https://script.google.com/macros/s/AKfycbwqCK3KIat3Z5utKQRJZKAJpeX8VpJx6vOWElgBK9-nWadySPUGTadiThx9Ymd0Q77O/exec";
-        if (prefilledUrl.startsWith('http') && !state.settings.googleSheetUrl) {
+        if (prefilledUrl.startsWith('http')) {
             state.settings.googleSheetUrl = prefilledUrl;
         }
-        saveState(); // Save state once after all initialization
+        // --- END FORCE UPDATE ---
+
+        saveState(); 
     }
+
     // --- END UPDATED loadState ---
 
     function saveState() { localStorage.setItem('loneWorkerState', JSON.stringify(state)); }
@@ -1833,47 +1836,20 @@ header button svg, .edit-location-btn svg { pointer-events: none; }
             });
         } 
         loadState(); 
-        
-        // --- v1.11: Mandatory PIN Check on Init ---
-        const pinInvalid = !state.settings.pinCode || state.settings.pinCode.length !== 4;
-        const duressInvalid = !state.settings.duressPin || state.settings.duressPin.length !== 4;
-
-        if (pinInvalid || duressInvalid) {
-            // Redirect to settings immediately
-            navigate('settings');
-            // Disable the close button visually (opacity) and pointer events
-            closeSettingsBtn.style.opacity = '0.5';
-            closeSettingsBtn.style.pointerEvents = 'none';
-            
-            setTimeout(() => {
-                showAlert("Welcome / Setup Required", "To ensure your safety, please set your Name, Phone, and Security PINs before using the app.");
-            }, 500);
+        updateHomeScreenButtons(); // --- RENAMED ---
+        if (state.activeVisit) {
+            enterLockedScreen();
         } else {
-            // Normal load
-            updateHomeScreenButtons();
-            if (state.activeVisit) {
-                enterLockedScreen();
-            } else {
-                navigate('main'); 
-                renderLocations();
-                // --- WSA: Sync forms and process queue on load ---
-                syncAllForms();
-                processUploadQueue();
-            } 
-        }
-        // --- END v1.11 Check ---
-
+            navigate('main'); 
+            renderLocations();
+            // --- WSA: Sync forms and process queue on load ---
+            syncAllForms();
+            processUploadQueue();
+        } 
         initEventListeners(); 
-        
-        // Hide inactive pages
-        Object.keys(pages).forEach(key => { 
-            // Don't hide settings if we just forced it open
-            if (key === 'settings' && (pinInvalid || duressInvalid)) return; 
-            
-            if (pages[key] && !pages[key].classList.contains('active')) { 
-                pages[key].classList.add('hidden'); 
-            } 
-        });
+        Object.keys(pages).forEach(key => { if (pages[key] && !pages[key].classList.contains('active')) { pages[key].classList.add('hidden'); } });
     }
     window.addEventListener('load', init);
     </script>
+</body>
+</html>
